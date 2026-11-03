@@ -10,10 +10,9 @@
 ## 0. Context and guardrails
 
 - The project is an **AI/MLOps extension of Asviin**, a real ERP (Vue 3 frontend, Firebase
-  Cloud Functions backend, Firestore NoSQL). Asviin v2 lives at
-  `/home/llogaran/proyectos/soberanaia-nubes/asviin` and
-  `/home/llogaran/proyectos/soberanaia-nubes/functions/asviinV2`. You may **read** it for
-  schema fidelity, never modify it.
+  Cloud Functions backend, Firestore NoSQL). Asviin v2 lives in its private monorepo
+  (`asviin/` frontend and `functions/asviinV2/` backend); read it only for schema fidelity,
+  never modify it.
 - **Data is 100% synthetic.** Never copy, reference, export or embed real client data,
   backups, credentials or `.env` files. The synthetic generator is itself a deliverable.
 - Business context: multi-branch ERP for SME plastic recyclers/transformers in **Mexico**,
@@ -22,8 +21,7 @@
   from Asviin, no Firestore access in this repo.
 - Code, docstrings, comments, docs and commit-ready files are written in **English**.
   The user-facing chat summary is Spanish; that is the coordinator's job, not yours.
-- Repository root: `/home/llogaran/proyectos-dsh/asviin/asviin-ml-forecasting`.
-  All paths below are relative to it.
+- Repository root: the checkout of this repository. All paths below are relative to it.
 
 ## 1. Repository map and ownership
 
