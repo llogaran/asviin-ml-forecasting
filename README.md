@@ -7,9 +7,10 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3123/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Milestone status:** M1 — foundation and documentation. The data pipeline,
-models, API and monitoring land in milestones M2–M6 (see the roadmap below);
-this README is updated as each milestone is committed.
+**Milestone status:** M1–M2 — documentation, foundation and the reproducible
+synthetic data pipeline are complete. Models, serving and monitoring land in
+milestones M3–M6 (see the roadmap below); this README is updated as each
+milestone is committed.
 
 ---
 
@@ -70,6 +71,35 @@ service-level policy is the defensible way to decide.
 4. **Everything reproducible.** Fixed seeds, committed dataset and artifacts,
    Makefile targets, pinned requirements and CI.
 
+## The synthetic dataset (M2)
+
+The dataset is generated from the Asviin v2 schema and business rules: three years
+of daily operations for a plastic recycler/transformer with 20 products, 3
+branches, a bill-of-materials, promotions, pending orders and cancellations. It is
+deterministic (seed 42), committed to the repository and safe to publish.
+
+| Metric | Value |
+|---|---|
+| Period | 2023-01-01 → 2025-12-31 (1,096 days) |
+| Branches / products | 3 / 20 (14 sellable, 6 ingredients, 5 with a recipe) |
+| Modeling grain | product × branch × day = 60 series, 65,760 rows |
+| Economic events / stock movements | 35,594 / 39,110 |
+| Pending sales | 2,983 (≈9% of invoiced volume) |
+| Zero-sale series-days | 55.3% — intermittent demand, realistic for SME retail |
+| Stockout series-days | 2,039 — demand is censored, the model must learn from observables |
+
+The ETL flattens Asviin's `economicEvents` and `movimientos` into
+`data/processed/demand_daily.csv`: cancelled lines are excluded from sales,
+missing days are zero-filled, and `pending_units`, closing `stock_on_hand`,
+`promo` and `stockout_flag` are derived. Every run writes a data-quality report;
+the full data dictionary and the Asviin→CSV mapping live in
+[`docs/DATA_CONTRACT.md`](docs/DATA_CONTRACT.md).
+
+```bash
+make data        # regenerate raw + processed data (seed 42, deterministic)
+make data-quick  # 120-day smoke dataset used by CI
+```
+
 ## Target architecture
 
 ```mermaid
@@ -121,8 +151,9 @@ asviin-ml-forecasting/
 
 | Milestone | Scope | Status |
 |---|---|---|
-| **M1** | Problem statement, requirements, packaging and repository structure | ✅ This commit |
-| **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | Next |
+| **M1** | Problem statement, requirements, packaging and repository structure | ✅ Committed |
+| **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | ✅ This commit |
+| **M3** | Feature engineering, XGBoost/Prophet comparison and time-series validation | Next |
 | **M3** | Feature engineering, XGBoost/Prophet comparison and time-series validation | Planned |
 | **M4** | Training CLI and FastAPI service with model registry | Planned |
 | **M5** | Docker, GitHub Actions and data-drift monitoring | Planned |
@@ -134,13 +165,15 @@ asviin-ml-forecasting/
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 
-# The suite grows with each milestone; M1 ships the contract tests only.
-make test
+make data   # regenerate the committed synthetic dataset (deterministic)
+make test   # contract, generator and ETL tests
+
+# inspect the modeling panel
+head -3 data/processed/demand_daily.csv
 ```
 
-The data, training and serving commands (`make data`, `make train`,
-`make serve`) are enabled in milestones M2–M4 and documented here when they
-land.
+Training and serving commands (`make train`, `make serve`) arrive in
+milestones M3–M4.
 
 ## Tech stack
 
