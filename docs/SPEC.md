@@ -230,6 +230,9 @@ class Forecaster:
     def model_info(self) -> dict
 ```
 - Recursive one-step forecasting using `features_for_next_day`; p10/p50/p90 per day.
+  The recursive state advances with the planning signal (`0.7·p50 + 0.3·p90`) and
+  keeps stock flat: simulating stock-out days inside the forecast would censor
+  future demand and collapse long horizons.
 - `forecast` returns `{"product_id", "branch_id", "model", "model_version",
   "generated_at", "horizon_days", "points": [{"date", "p50", "p10", "p90"}]}` with
   non-negative rounded values.

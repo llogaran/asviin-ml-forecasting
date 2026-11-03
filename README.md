@@ -7,10 +7,11 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3123/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Milestone status:** M1–M3 — documentation, the reproducible synthetic data
-pipeline, feature engineering and the temporal-validation modeling notebook are
-complete. Serving, monitoring and the assistant land in milestones M4–M6 (see
-the roadmap below); this README is updated as each milestone is committed.
+**Milestone status:** M1–M4 — documentation, the reproducible synthetic data
+pipeline, feature engineering, the temporal-validation notebook, the training
+CLI, the committed model registry and the FastAPI service are complete.
+Monitoring and the assistant land in milestones M5–M6 (see the roadmap below);
+this README is updated as each milestone is committed.
 
 ---
 
@@ -139,6 +140,87 @@ zero, which is right for absolute error but too low as a replenishment trigger.
 M4 therefore adds a planning signal that blends `p50` with `p90` and validates
 it with an inventory-policy simulation.
 
+## Serving and recommendation (M4)
+
+`make train` runs the reproducible training CLI (`python -m src.pipelines.train`):
+it loads the committed panel, builds the supervised frame, trains three quantile
+models, scores the baselines, runs the inventory-policy simulation and writes the
+serving contract:
+
+- `artifacts/models/xgboost_global.joblib` — three boosters plus feature/encoder metadata
+- `artifacts/models/registry.json` — champion, dataset SHA-256, holdout metrics,
+  baselines and schema versions
+- `artifacts/reports/backtest.{json,md}` and `impact.json`
+
+Training is deterministic: the same dataset and seed reproduce
+**WAPE 0.5273, MASE 0.7771 and 90% coverage 0.8375**.
+
+### FastAPI service
+
+`make serve` starts `uvicorn src.api.app:app` on port 8000.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Liveness; works even when the model is missing. |
+| `GET /ready`, `GET /model` | Readiness and registry metadata. |
+| `GET /products?q=` | Catalog search by name. |
+| `POST /forecast` | `p10` / `p50` / `p90` per day (1–90 days). |
+| `POST /recommendation` | Reorder point, safety stock and quantity. |
+| `GET /metrics` | In-process request counters. |
+
+If `MLFC_API_KEY` is set, every endpoint except `/health` requires `X-API-Key`.
+CORS comes from `MLFC_CORS_ORIGINS`. Unknown product/branch → 404, invalid
+payload → 422, missing model → 503.
+
+### Recommendation policy
+
+Planning demand per day is `0.7 · p50 + 0.3 · p90` (the conditional median alone
+is zero on many lumpy days). With lead time `L`, service-level `z`, interval
+width `σ` and current stock `S`:
+
+```text
+safety_stock     = z * σ * sqrt(L)
+reorder_point    = planning_mean * L + safety_stock
+reorder_quantity = max(0, reorder_point - S)
+```
+
+The recursive forecast advances with that same planning signal **and keeps the
+stock level flat**: simulating stock-out days inside the forecast artificially
+censors future demand and collapses long horizons. Inventory depletion belongs to
+the recommendation/policy layer, not to the demand model.
+
+### Inventory impact on the holdout (synthetic simulation)
+
+| Policy | Avg on-hand | Stock-out days | Fill rate |
+|---|---|---|---|
+| Forecast-driven (p50/p90 planning signal) | 63.64 units | 155 | 81.55% |
+| Naive seasonal | 65.44 units | 159 | 80.23% |
+| **Relative improvement** | **−2.75%** | **−2.52%** | **+1.32 pp** |
+
+This is a deterministic simulation on the synthetic holdout — a comparison of two
+policies under equal lead times, review period and service-level target, not a
+production guarantee.
+
+### Explainability
+
+`notebooks/03_explainability.ipynb` is executed and explains the `p50` model with
+SHAP: additivity is verified to `1e-6`, the waterfall attributes one specific
+forecast and the bar plot ranks global drivers. It also documents the
+correlated-lag caveat of tree SHAP.
+
+### Example
+
+```bash
+make train
+make serve
+
+curl -s localhost:8000/health
+curl -s -X POST localhost:8000/forecast -H 'Content-Type: application/json' \
+  -d '{"product_id":"P-007","branch_id":"B-01","horizon_days":7}'
+curl -s -X POST localhost:8000/recommendation -H 'Content-Type: application/json' \
+  -d '{"product_id":"P-012","branch_id":"B-01","horizon_days":30}'
+```
+
 ## Target architecture
 
 ```mermaid
@@ -192,9 +274,9 @@ asviin-ml-forecasting/
 |---|---|---|
 | **M1** | Problem statement, requirements, packaging and repository structure | ✅ Committed |
 | **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | ✅ Committed |
-| **M3** | Feature engineering and temporal-validation notebook (XGBoost vs. Prophet) | ✅ This commit |
-| **M4** | Training CLI, model registry, FastAPI service and SHAP notebook | Next |
-| **M5** | Docker, GitHub Actions and data-drift monitoring | Planned |
+| **M3** | Feature engineering and temporal-validation notebook (XGBoost vs. Prophet) | ✅ Committed |
+| **M4** | Training CLI, model registry, FastAPI service and SHAP notebook | ✅ This commit |
+| **M5** | Docker, GitHub Actions and data-drift monitoring | Next |
 | **M6** | Natural-language LLM agent | Planned |
 
 ## Getting started
@@ -203,15 +285,18 @@ asviin-ml-forecasting/
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 
-make data   # regenerate the committed synthetic dataset (deterministic)
-make test   # contract, generator and ETL tests
+make data    # regenerate the committed synthetic dataset (deterministic)
+make train   # train the champion, write artifacts/ and the model registry
+make test    # contract, data, modeling, serving and monitoring tests
+make serve   # FastAPI on http://127.0.0.1:8000 (see the M4 section above)
 
-# inspect the modeling panel
-head -3 data/processed/demand_daily.csv
+# Optional: execute the notebooks with outputs
+.venv/bin/pip install -e ".[notebooks]"
+.venv/bin/jupyter nbconvert --to notebook --execute --inplace notebooks/02_modeling.ipynb
 ```
 
-Training and serving commands (`make train`, `make serve`) arrive in
-milestones M3–M4.
+The full suite is also what CI runs in M5. `make monitor` and the LLM assistant
+arrive in M5–M6.
 
 ## Tech stack
 
