@@ -7,11 +7,10 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3123/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Milestone status:** M1–M4 — documentation, the reproducible synthetic data
-pipeline, feature engineering, the temporal-validation notebook, the training
-CLI, the committed model registry and the FastAPI service are complete.
-Monitoring and the assistant land in milestones M5–M6 (see the roadmap below);
-this README is updated as each milestone is committed.
+**Milestone status:** M1–M5 — documentation, synthetic data, feature engineering,
+modeling, serving and the MLOps layer (drift monitoring, Docker and CI) are
+complete. The natural-language assistant lands in milestone M6 (see the roadmap
+below); this README is updated as each milestone is committed.
 
 ---
 
@@ -221,6 +220,56 @@ curl -s -X POST localhost:8000/recommendation -H 'Content-Type: application/json
   -d '{"product_id":"P-012","branch_id":"B-01","horizon_days":30}'
 ```
 
+## MLOps: drift, Docker and CI (M5)
+
+### Data-drift monitoring
+
+`make monitor` compares a reference window with a current window using the
+Population Stability Index (10 reference-quantile bins) and a two-sample
+Kolmogorov–Smirnov test. The default is a **seasonal split**: the last 28 days
+against the same calendar window one year earlier, so the annual cycle is not
+mistaken for drift. Short files fall back to the chronological 70/30 split and
+the report records `window_mode`.
+
+```bash
+make monitor
+# drift: status=warning drift_share=0.286 ... mode=seasonal
+```
+
+On the committed panel the baseline report is a **warning**: volume is stable
+(`units_sold` PSI 0.01) while `stock_on_hand` and `promo` shift — exactly the
+kind of operational change a monitor should surface. Running with
+`--inject-drift` (1.6× current demand) escalates to **drift** and flags
+`units_sold` as well. Both the thresholds and the per-feature PSI/KS statistics
+are in [`artifacts/monitoring/drift_report.json`](artifacts/monitoring/drift_report.json).
+
+### Container
+
+The `Dockerfile` is a two-stage build: it installs the wheel, copies the
+committed synthetic data and model artifacts into a non-root runtime image
+(UID 10001) and serves FastAPI on port 8000 with a `/health` healthcheck.
+Training never runs at build or start time.
+
+```bash
+docker build -t asviin-ml-forecasting:local .
+docker run --rm -p 8000:8000 asviin-ml-forecasting:local
+curl -s localhost:8000/health
+```
+
+### CI pipeline
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs three jobs on every
+push and pull request, with Python 3.12 and pip caching:
+
+| Job | What it proves |
+|---|---|
+| `quality` | `ruff check` + the full `pytest` suite. |
+| `pipeline` | `make data-quick` → `make train-quick` → drift report → forecaster smoke; uploads the registry, reports and drift JSON. |
+| `docker` | Builds the image, starts the container, waits for `/health`, calls `/forecast` and dumps the logs on failure. |
+
+The architecture, data flow, failure modes and scaling notes are documented in
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## Target architecture
 
 ```mermaid
@@ -257,8 +306,8 @@ asviin-ml-forecasting/
 │   ├── monitoring/             # PSI/KS drift checks (M5)
 │   └── pipelines/              # synthetic generator, ETL, features, training (M2–M4)
 ├── tests/                      # unit + integration tests (M1–M6)
-├── artifacts/                  # model registry, backtest and drift reports (M4–M5)
-├── docs/                       # build spec, data contract, decisions, architecture (M1+)
+├── artifacts/                  # model registry, backtest, impact and drift reports (M4–M5)
+├── docs/                       # spec, data contract, decisions and architecture (M1–M5)
 ├── Dockerfile                  # serving image (M5)
 ├── .github/workflows/ci.yml    # lint + tests + pipeline smoke (M5)
 ├── requirements.txt            # pinned runtime dependencies (M1)
@@ -275,8 +324,9 @@ asviin-ml-forecasting/
 | **M1** | Problem statement, requirements, packaging and repository structure | ✅ Committed |
 | **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | ✅ Committed |
 | **M3** | Feature engineering and temporal-validation notebook (XGBoost vs. Prophet) | ✅ Committed |
-| **M4** | Training CLI, model registry, FastAPI service and SHAP notebook | ✅ This commit |
-| **M5** | Docker, GitHub Actions and data-drift monitoring | Next |
+| **M4** | Training CLI, model registry, FastAPI service and SHAP notebook | ✅ Committed |
+| **M5** | Docker, GitHub Actions and data-drift monitoring | ✅ This commit |
+| **M6** | Natural-language LLM agent | Next |
 | **M6** | Natural-language LLM agent | Planned |
 
 ## Getting started
@@ -285,18 +335,19 @@ asviin-ml-forecasting/
 python3 -m venv .venv
 .venv/bin/pip install -e ".[dev]"
 
-make data    # regenerate the committed synthetic dataset (deterministic)
-make train   # train the champion, write artifacts/ and the model registry
-make test    # contract, data, modeling, serving and monitoring tests
-make serve   # FastAPI on http://127.0.0.1:8000 (see the M4 section above)
+make data     # regenerate the committed synthetic dataset (deterministic)
+make train    # train the champion, write artifacts/ and the model registry
+make test     # contract, data, modeling, serving, drift and agent tests
+make monitor  # PSI/KS drift report against the committed panel
+make serve    # FastAPI on http://127.0.0.1:8000 (see the M4 section above)
 
 # Optional: execute the notebooks with outputs
 .venv/bin/pip install -e ".[notebooks]"
 .venv/bin/jupyter nbconvert --to notebook --execute --inplace notebooks/02_modeling.ipynb
 ```
 
-The full suite is also what CI runs in M5. `make monitor` and the LLM assistant
-arrive in M5–M6.
+The Docker and CI details are in the M5 section above; the LLM assistant arrives
+in M6.
 
 ## Tech stack
 

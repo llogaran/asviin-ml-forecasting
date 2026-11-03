@@ -258,8 +258,13 @@ def detect_drift(reference, current, features: list[str] | None = None) -> dict
 - Overall `status` = `drift` if ≥30% features drift, else `warning` if any warning/drift,
   else `ok`; include `drift_share`, thresholds, row counts, timestamp.
 - CLI: `--data data/processed/demand_daily.csv --out artifacts/monitoring/drift_report.json
-  [--inject-drift]`; split by date: first 70% reference, last 30% current; `--inject-drift`
-  multiplies current `units_sold` by 1.6 to demonstrate detection. Prints a one-line summary.
+  [--mode seasonal|chronological] [--window-days 28] [--lag-days 364] [--inject-drift]`.
+  The default is a **seasonal split**: compare the last 28 days with the same calendar
+  window 364 days earlier (preserves weekday alignment), so normal annual seasonality is
+  not mistaken for drift. If the file is shorter than a year, the CLI falls back to the
+  chronological 70/30 split and records `window_mode` in the report. `--inject-drift`
+  multiplies the current `units_sold` by 1.6 to demonstrate detection. Prints a one-line
+  summary.
 
 ### 4.7 `src/api/`
 Files: `__init__.py`, `models.py` (Pydantic request/response models), `service.py`
