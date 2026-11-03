@@ -7,10 +7,10 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3123/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Milestone status:** M1–M2 — documentation, foundation and the reproducible
-synthetic data pipeline are complete. Models, serving and monitoring land in
-milestones M3–M6 (see the roadmap below); this README is updated as each
-milestone is committed.
+**Milestone status:** M1–M3 — documentation, the reproducible synthetic data
+pipeline, feature engineering and the temporal-validation modeling notebook are
+complete. Serving, monitoring and the assistant land in milestones M4–M6 (see
+the roadmap below); this README is updated as each milestone is committed.
 
 ---
 
@@ -100,6 +100,45 @@ make data        # regenerate raw + processed data (seed 42, deterministic)
 make data-quick  # 120-day smoke dataset used by CI
 ```
 
+## Modeling approach (M3)
+
+The model is trained in `notebooks/02_modeling.ipynb`, which is fully
+self-contained: it trains from the committed CSV and evaluates on a **temporal
+holdout** without reading any pre-computed artifact.
+
+**Validation protocol.** The last 28 calendar days of every series
+(2025-12-04 → 2025-12-31) are held out; the first 28 days are lag history only.
+Features use only data strictly before each target day — no random split, no
+target leakage. Metrics are computed on raw units after the inverse `log1p`.
+
+**Features (27).** Lags and rolling statistics (1/7/14/28 days), days since the
+last sale, calendar effects, lagged promotions/stockouts/prices/pending demand,
+stock-to-demand cover, lead time and categorical encodings for the 60 series.
+
+**Champion and baselines.**
+
+| Model | MAE | WAPE | MASE | 90% coverage |
+|---|---|---|---|---|
+| **XGBoost p50** (global, quantile) | **1.92** | **0.527** | **0.777** | **0.838** |
+| Prophet (per series, all 60) | 2.03 | 0.558 | 0.822 | — |
+| Croston/SBA | 2.22 | 0.609 | 0.897 | — |
+| Seasonal naive (`lag_7`) | 2.47 | 0.679 | 1.000 | — |
+
+Weekly aggregation WAPE is **0.412** (forecasting daily and summing seven days).
+The aggregate number hides the segment reality: WAPE is **0.295 for A items**
+(2.4% zero days) versus **0.898 for C items** (65.1% zero days). That is the
+honest portrait of intermittent retail demand, not a modeling failure.
+
+**Why XGBoost and not Prophet.** Prophet is competitive on the five highest-volume,
+smoother series, but the global XGBoost wins on the full zero-inflated catalog
+(0.527 vs 0.558 WAPE), trains one artifact for all 60 series and emits quantile
+intervals. Prophet remains documented as a reproducible baseline.
+
+**Known bias.** The `p50` is a conditional median; for lumpy SKUs it is often
+zero, which is right for absolute error but too low as a replenishment trigger.
+M4 therefore adds a planning signal that blends `p50` with `p90` and validates
+it with an inventory-policy simulation.
+
 ## Target architecture
 
 ```mermaid
@@ -127,8 +166,8 @@ asviin-ml-forecasting/
 │   └── processed/              # demand_daily.csv + data-quality report (M2)
 ├── notebooks/
 │   ├── 01_eda.ipynb            # seasonality, ABC/XYZ, intermittency (M2)
-│   ├── 02_modeling.ipynb       # backtest and model selection (M3)
-│   └── 03_explainability.ipynb # SHAP / feature importance (M3)
+│   ├── 02_modeling.ipynb       # quantile XGBoost vs. baselines (M3)
+│   └── 03_explainability.ipynb # SHAP / feature importance (M4)
 ├── src/
 │   ├── api/                    # FastAPI serving layer (M4)
 │   ├── agent/                  # natural-language assistant (M6)
@@ -152,10 +191,9 @@ asviin-ml-forecasting/
 | Milestone | Scope | Status |
 |---|---|---|
 | **M1** | Problem statement, requirements, packaging and repository structure | ✅ Committed |
-| **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | ✅ This commit |
-| **M3** | Feature engineering, XGBoost/Prophet comparison and time-series validation | Next |
-| **M3** | Feature engineering, XGBoost/Prophet comparison and time-series validation | Planned |
-| **M4** | Training CLI and FastAPI service with model registry | Planned |
+| **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | ✅ Committed |
+| **M3** | Feature engineering and temporal-validation notebook (XGBoost vs. Prophet) | ✅ This commit |
+| **M4** | Training CLI, model registry, FastAPI service and SHAP notebook | Next |
 | **M5** | Docker, GitHub Actions and data-drift monitoring | Planned |
 | **M6** | Natural-language LLM agent | Planned |
 
@@ -178,8 +216,9 @@ milestones M3–M4.
 ## Tech stack
 
 `Python 3.12` · `pandas` / `numpy` · `XGBoost` (quantile regression) ·
-`FastAPI` / `Pydantic` · `PSI` + two-sample `KS` drift tests ·
-`pytest` / `ruff` · `Docker` · `GitHub Actions`.
+`Prophet` (optional baseline) · `FastAPI` / `Pydantic` ·
+`PSI` + two-sample `KS` drift tests · `pytest` / `ruff` · `Docker` ·
+`GitHub Actions`.
 
 ## Data & privacy
 
