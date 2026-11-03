@@ -1,0 +1,36 @@
+# Version control and CI configuration
+.git
+.gitignore
+.github
+
+# Local environments and tool caches (the **/ forms also catch nested dirs)
+.venv
+venv
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+.coverage
+htmlcov
+
+# Generated CI scratch data (never part of the image)
+.ci
+
+# Not needed at runtime; README.md is copied on purpose
+tests
+notebooks
+docs
+*.ipynb
+
+# Secrets and machine-specific configuration
+.env
+.env.*
+.env.example
+
+# Editor and OS noise
+.DS_Store
+.idea
+.vscode
+*.log
