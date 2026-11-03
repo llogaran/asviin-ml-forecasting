@@ -7,10 +7,11 @@
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3123/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Milestone status:** M1–M5 — documentation, synthetic data, feature engineering,
-modeling, serving and the MLOps layer (drift monitoring, Docker and CI) are
-complete. The natural-language assistant lands in milestone M6 (see the roadmap
-below); this README is updated as each milestone is committed.
+**Milestone status:** M1–M6 — the portfolio is complete: documentation, the
+reproducible synthetic data pipeline, feature engineering, temporal-validation
+modeling, the training CLI, the model registry, the FastAPI service, drift
+monitoring, Docker/CI and the natural-language assistant. All milestones are
+committed in order; see the roadmap below.
 
 ---
 
@@ -270,6 +271,46 @@ push and pull request, with Python 3.12 and pip caching:
 The architecture, data flow, failure modes and scaling notes are documented in
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
+## Natural-language assistant (M6)
+
+The assistant answers Spanish questions such as *"¿Cuánto debo pedir de la bolsa
+de basura en la sucursal norte?"* by resolving the product and branch, calling
+the forecaster and composing an answer with the real numbers.
+
+```bash
+make agent Q="¿Cuánto debo pedir de la bolsa de basura PEAD 60 x 90 cm en la sucursal norte?"
+# or
+.venv/bin/python -m src.agent.cli "¿Cuánto debo pedir de la bolsa de basura PEAD 60 x 90 cm en la sucursal norte?"
+```
+
+Real offline output:
+
+> Para Bolsa de basura PEAD 60 x 90 cm (P-007) en Sucursal Norte (B-02), con un
+> horizonte de 30 días y un nivel de servicio del 95%, la cantidad recomendada a
+> pedir es **15.48 unidades**. El punto de pedido es 79.48 unidades, el stock
+> actual es 64.00 unidades y el plazo de entrega es de 5 días; la demanda
+> pronosticada promedia 13.40 unidades/día. Versión del modelo: 1.0.0. Nota: el
+> pronóstico es probabilístico (intervalos p10–p90); es una estimación, no una
+> garantía.
+
+**Two modes, one safety net.**
+
+- **Offline (default, no network).** Normalizes accents, detects intent
+  (recommendation vs. forecast), resolves product by fuzzy matching, branch by
+  id/name and horizon by regex, calls the forecaster locally and composes the
+  answer. Ambiguous products trigger a clarification question instead of a
+  guess; numbers are never invented.
+- **LLM (optional).** When `OPENAI_API_KEY` is set, an OpenAI-compatible chat
+  completion can call three local tools (`list_products`, `forecast`,
+  `recommendation`) for up to three rounds. Any HTTP, parsing or validation
+  failure falls back to the deterministic offline answer and reports
+  `mode="offline_fallback"`; the API key is never logged. The test suite
+  exercises the LLM path with `httpx.MockTransport`, so no network is required.
+
+Guardrails: the assistant cites the model version, labels the forecast as
+probabilistic and asks for clarification when the product is ambiguous. It is a
+read-only planning assistant, not an autonomous purchasing agent.
+
 ## Target architecture
 
 ```mermaid
@@ -325,8 +366,8 @@ asviin-ml-forecasting/
 | **M2** | Synthetic data generator faithful to the Asviin schema + EDA notebook | ✅ Committed |
 | **M3** | Feature engineering and temporal-validation notebook (XGBoost vs. Prophet) | ✅ Committed |
 | **M4** | Training CLI, model registry, FastAPI service and SHAP notebook | ✅ Committed |
-| **M5** | Docker, GitHub Actions and data-drift monitoring | ✅ This commit |
-| **M6** | Natural-language LLM agent | Next |
+| **M5** | Docker, GitHub Actions and data-drift monitoring | ✅ Committed |
+| **M6** | Natural-language LLM agent | ✅ This commit |
 | **M6** | Natural-language LLM agent | Planned |
 
 ## Getting started
@@ -340,14 +381,15 @@ make train    # train the champion, write artifacts/ and the model registry
 make test     # contract, data, modeling, serving, drift and agent tests
 make monitor  # PSI/KS drift report against the committed panel
 make serve    # FastAPI on http://127.0.0.1:8000 (see the M4 section above)
+make agent Q="¿Cuánto debo pedir de la bolsa de basura PEAD 60 x 90 cm en la sucursal norte?"
 
 # Optional: execute the notebooks with outputs
 .venv/bin/pip install -e ".[notebooks]"
 .venv/bin/jupyter nbconvert --to notebook --execute --inplace notebooks/02_modeling.ipynb
 ```
 
-The Docker and CI details are in the M5 section above; the LLM assistant arrives
-in M6.
+The Docker and CI details are in the M5 section; the assistant is documented in
+M6.
 
 ## Tech stack
 
