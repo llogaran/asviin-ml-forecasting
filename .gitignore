@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# CI scratch
+.ci/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data & artifacts are COMMITTED on purpose (fully synthetic, deterministic).
+# Only transient monitoring snapshots are ignored.
+artifacts/monitoring/*.tmp.json

@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Development and quality tooling
+pytest==8.4.2
+httpx==0.28.1
+ruff==0.17.3

@@ -1,0 +1,11 @@
+# Pinned runtime dependencies for reproducible environments.
+# The source of truth is pyproject.toml; regenerate this file when it changes.
+fastapi==0.162.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.2
+pandas==2.3.3
+numpy==2.2.6
+scikit-learn==1.9.1
+xgboost==2.1.4
+joblib==1.6.0
+PyYAML==6.0.3
