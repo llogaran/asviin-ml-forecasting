@@ -50,11 +50,13 @@ RUN groupadd --gid 10001 appuser \
     && useradd --uid 10001 --gid appuser --create-home --shell /usr/sbin/nologin appuser
 
 # The dataset and artifacts are committed deliverables (synthetic data only).
-COPY data ./data
-COPY artifacts ./artifacts
+# ``--chown`` is required: the runtime user is unprivileged, and a checkout can
+# carry restrictive file modes (some tools create sources as 0600).
+COPY --chown=appuser:appuser data ./data
+COPY --chown=appuser:appuser artifacts ./artifacts
 # Kept next to the installed package so src.config.PROJECT_ROOT resolves to /app.
-COPY src ./src
-COPY README.md ./
+COPY --chown=appuser:appuser src ./src
+COPY --chown=appuser:appuser README.md ./
 
 USER appuser
 
