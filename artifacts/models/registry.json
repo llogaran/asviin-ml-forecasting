@@ -1,0 +1,38 @@
+{
+  "champion": "xgboost_global",
+  "dataset": {
+    "date_max": "2025-12-31",
+    "date_min": "2023-01-01",
+    "path": "data/processed/demand_daily.csv",
+    "rows": 65760,
+    "series": 60,
+    "sha256": "1666735c681989446edc88903376fbbb8a8bd91b2312f6c272793c99d789b5fd"
+  },
+  "generated_at": "2026-11-03T19:42:11Z",
+  "models": {
+    "xgboost_global": {
+      "artifact": "xgboost_global.joblib",
+      "baselines": {
+        "croston_sba": {
+          "mae": 2.216271,
+          "wape": 0.608494
+        },
+        "naive_seasonal": {
+          "mae": 2.471321,
+          "wape": 0.678519
+        }
+      },
+      "holdout_days": 28,
+      "metrics": {
+        "coverage_90": 0.8375,
+        "holdout_days": 28,
+        "mae": 1.920458,
+        "mase": 0.777097,
+        "n_series": 60,
+        "wape": 0.527276
+      },
+      "trained_at": "2026-11-03T19:42:11Z"
+    }
+  },
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,49 @@
+{
+  "forecast_driven": {
+    "avg_on_hand_units": 63.64,
+    "days": 1680,
+    "service_level": 0.8155,
+    "stockout_days": 155,
+    "stockout_units": 1129.07
+  },
+  "generated_at": "2026-11-03T19:42:11Z",
+  "holdout": {
+    "date_max": "2025-12-31",
+    "date_min": "2025-12-04",
+    "days": 1680,
+    "series": 60
+  },
+  "model": "xgboost_global",
+  "model_version": "1.0.0",
+  "naive_driven": {
+    "avg_on_hand_units": 65.44,
+    "days": 1680,
+    "service_level": 0.8023,
+    "stockout_days": 159,
+    "stockout_units": 1209.45
+  },
+  "note": "Positive relative improvements mean the forecast-driven policy holds fewer units on average, has fewer stockout days, or serves a higher share of demand than the naive seasonal policy. The planning driver is 70% of the p50 plus 30% of the p90: the conditional median of a zero-inflated series is often 0, so planning on the median alone would systematically under-stock intermittent SKUs. The blend keeps the median's stability while pricing the upside tail; it is the same signal used by Forecaster.recommend().",
+  "policy": {
+    "average_on_hand": "mean closing on-hand units across series-days",
+    "forecast_driver": "70% * p50 + 30% * p90 (planning signal, median-bias corrected)",
+    "forecast_sigma": "mean((p90 - p10) / 2.562) over the holdout",
+    "naive_driver": "lag_7 (same weekday, previous week)",
+    "naive_sigma": "std of pre-holdout daily units_sold",
+    "order_up_to": "expected (lead time + review period) demand + safety stock",
+    "reorder_point": "expected lead-time demand + safety stock",
+    "review_period_days": 7,
+    "service_level": 0.95,
+    "service_level_metric": "1 - stockout units / demand units (unit fill rate)",
+    "starting_inventory": "last stock_on_hand before the holdout",
+    "stockout_day": "day with unmet demand > 0",
+    "type": "periodic_review",
+    "z_score": 1.6449
+  },
+  "relative_improvement": {
+    "avg_on_hand_reduction_pct": 2.75,
+    "service_level_gain_pp": 1.32,
+    "stockout_days_reduction_pct": 2.52
+  },
+  "schema_version": "1.0.0",
+  "summary": "Forecast-driven vs naive-driven replenishment: stockout days 155 vs 159, service level 81.55% vs 80.23%, average on-hand 63.64 vs 65.44 units."
+}

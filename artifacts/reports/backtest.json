@@ -1,0 +1,159 @@
+{
+  "baselines": {
+    "croston_sba": {
+      "mae": 2.216271,
+      "wape": 0.608494
+    },
+    "naive_seasonal": {
+      "mae": 2.471321,
+      "wape": 0.678519
+    }
+  },
+  "dataset": {
+    "date_max": "2025-12-31",
+    "date_min": "2023-01-01",
+    "path": "data/processed/demand_daily.csv",
+    "rows": 65760,
+    "series": 60,
+    "sha256": "1666735c681989446edc88903376fbbb8a8bd91b2312f6c272793c99d789b5fd"
+  },
+  "generated_at": "2026-11-03T19:42:11Z",
+  "holdout": {
+    "date_max": "2025-12-31",
+    "date_min": "2025-12-04",
+    "rows": 1680,
+    "series": 60
+  },
+  "holdout_days": 28,
+  "metrics": {
+    "coverage_90": 0.8375,
+    "holdout_days": 28,
+    "mae": 1.920458,
+    "mase": 0.777097,
+    "n_series": 60,
+    "wape": 0.527276
+  },
+  "model": "xgboost_global",
+  "model_version": "1.0.0",
+  "notes": [
+    "Metrics are computed on the units scale after inverse log1p.",
+    "coverage_90 is the share of actual demand inside the [p10, p90] interval.",
+    "mase is the model MAE divided by the naive-seasonal MAE on this holdout.",
+    "croston_sba uses alpha=0.1 and is estimated from pre-holdout history only."
+  ],
+  "per_series_sample": [
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.678571,
+      "croston_mae": 1.354766,
+      "mae": 1.33286,
+      "naive_mae": 1.887857,
+      "product_id": "P-001",
+      "rows": 28,
+      "wape": 0.750152
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.75,
+      "croston_mae": 1.448984,
+      "mae": 1.290078,
+      "naive_mae": 1.454286,
+      "product_id": "P-002",
+      "rows": 28,
+      "wape": 0.678988
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.928571,
+      "croston_mae": 1.518172,
+      "mae": 0.928571,
+      "naive_mae": 1.464286,
+      "product_id": "P-003",
+      "rows": 28,
+      "wape": 1.0
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.928571,
+      "croston_mae": 0.853023,
+      "mae": 0.25,
+      "naive_mae": 0.5,
+      "product_id": "P-004",
+      "rows": 28,
+      "wape": 1.0
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.928571,
+      "croston_mae": 1.165755,
+      "mae": 0.879127,
+      "naive_mae": 1.705357,
+      "product_id": "P-005",
+      "rows": 28,
+      "wape": 1.025648
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.928571,
+      "croston_mae": 0.584529,
+      "mae": 0.281071,
+      "naive_mae": 0.562143,
+      "product_id": "P-006",
+      "rows": 28,
+      "wape": 1.0
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.678571,
+      "croston_mae": 9.089469,
+      "mae": 6.43524,
+      "naive_mae": 6.607143,
+      "product_id": "P-007",
+      "rows": 28,
+      "wape": 0.245821
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.714286,
+      "croston_mae": 5.93981,
+      "mae": 4.292442,
+      "naive_mae": 4.75,
+      "product_id": "P-008",
+      "rows": 28,
+      "wape": 0.256813
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.714286,
+      "croston_mae": 1.828526,
+      "mae": 1.592477,
+      "naive_mae": 1.892857,
+      "product_id": "P-009",
+      "rows": 28,
+      "wape": 0.506697
+    },
+    {
+      "branch_id": "B-01",
+      "business_id": "BIZ-001",
+      "coverage_90": 0.821429,
+      "croston_mae": 3.864376,
+      "mae": 3.285714,
+      "naive_mae": 4.857143,
+      "product_id": "P-010",
+      "rows": 28,
+      "wape": 1.0
+    }
+  ],
+  "quick": false,
+  "schema_version": "1.0.0",
+  "series_total": 60
+}
