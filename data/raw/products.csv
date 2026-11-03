@@ -1,0 +1,21 @@
+product_id,name,category,unit,price_mxn,cost_mxn,is_ingredient,has_recipe,safety_stock,lead_time_days,demand_pattern,abc_class
+P-001,Botella PET post-consumo compactada,Materia Prima,kg,6.80,4.50,1,0,4.80,8,smooth,C
+P-002,Hojuela de PET reciclado transparente,Materia Prima,kg,12.40,8.20,1,0,2.70,6,smooth,C
+P-003,Hojuela de PEAD reciclado,Materia Prima,kg,14.60,10.10,1,0,13.99,5,intermittent,C
+P-004,Pellet de polipropileno reciclado,Materia Prima,kg,18.90,13.20,1,0,102.72,12,intermittent,C
+P-005,Film de polietileno post-industrial,Materia Prima,kg,9.80,6.10,1,0,16.81,9,lumpy,C
+P-006,Aditivo estabilizante UV,Insumos,l,82.00,58.00,1,0,3.36,14,lumpy,C
+P-007,Bolsa de basura PEAD 60 x 90 cm,Producto Terminado,pza,3.40,2.30,0,1,15.65,5,smooth,A
+P-008,Bolsa de basura PEAD 90 x 120 cm,Producto Terminado,pza,4.95,3.35,0,1,10.06,5,smooth,A
+P-009,Tarima de plástico reciclado 1.2 x 1.0 m,Producto Terminado,pza,248.00,176.00,0,1,2.53,10,smooth,C
+P-010,Caja apilable de plástico reciclado 60 L,Producto Terminado,pza,172.00,121.00,0,1,3.11,8,intermittent,C
+P-011,Contenedor industrial de plástico reciclado 240 L,Producto Terminado,pza,895.00,642.00,0,1,0.68,15,lumpy,C
+P-012,Tubería PVC sanitaria 1/2 pulgada,Producto Terminado,pza,42.50,29.20,0,0,8.50,4,smooth,A
+P-013,Tubería PVC sanitaria 2 pulgadas,Producto Terminado,pza,118.00,83.00,0,0,3.00,4,intermittent,B
+P-014,Perfil de poliestireno 2 m,Producto Terminado,pza,36.00,24.80,0,0,1.47,6,lumpy,C
+P-015,Lámina de PEAD reciclado 1.2 x 2.4 m,Producto Terminado,pza,410.00,288.00,0,0,0.75,9,lumpy,C
+P-016,Rollo de fleje PET reciclado 1 kg,Producto Terminado,pza,28.00,19.40,0,0,3.18,6,intermittent,B
+P-017,Hojuela de PET grado alimenticio,Materia Prima,kg,16.80,11.90,0,0,8.49,8,smooth,B
+P-018,Bolsa reutilizable de supermercado,Consumibles,pza,6.90,4.65,0,0,2.01,5,intermittent,C
+P-019,Cubeta de plástico reciclado 20 L,Producto Terminado,pza,58.00,40.00,0,0,1.57,5,intermittent,C
+P-020,Bolsa comercial biodegradable 40 x 50 cm,Consumibles,pza,2.15,1.48,0,0,3.92,6,intermittent,B

@@ -1,0 +1,4 @@
+branch_id,business_id,name,region
+B-01,BIZ-001,Matriz Centro,Centro
+B-02,BIZ-001,Sucursal Norte,Norte
+B-03,BIZ-001,Bodega Sur,Sur

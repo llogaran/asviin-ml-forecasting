@@ -1,0 +1,26 @@
+{
+  "branch_multipliers": {
+    "B-01": 1.0,
+    "B-02": 0.62,
+    "B-03": 0.38
+  },
+  "business_id": "BIZ-001",
+  "currency": "MXN",
+  "days": 1096,
+  "end_date": "2025-12-31",
+  "generator": "synthetic_generator",
+  "n_branches": 3,
+  "n_products": 20,
+  "row_counts": {
+    "branches": 3,
+    "economic_events": 35594,
+    "pending_sales": 2983,
+    "products": 20,
+    "recipes": 10,
+    "stock_movements": 39110
+  },
+  "schema_version": "1.0.0",
+  "seed": 42,
+  "start_date": "2023-01-01",
+  "timezone": "America/Mexico_City"
+}

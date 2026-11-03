@@ -1,0 +1,14 @@
+{
+  "cancelled_units_total": 3065.11,
+  "date_max": "2025-12-31",
+  "date_min": "2023-01-01",
+  "duplicate_keys": 0,
+  "missing_product_refs": 0,
+  "negative_stock_rows": 0,
+  "pending_units_total": 13746.74,
+  "promo_rows": 2247,
+  "rows": 65760,
+  "series": 60,
+  "stockout_rows": 2039,
+  "zero_sale_share": 0.5533
+}
