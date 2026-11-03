@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import warnings
 from datetime import UTC, datetime
 from pathlib import Path
 from statistics import NormalDist
@@ -151,7 +152,12 @@ class Forecaster:
                 raise FileNotFoundError(f"Missing {path}; {hint}.")
 
         daily = load_csv(daily_path, "demand_daily")
-        payload = joblib.load(model_path)
+        with warnings.catch_warnings():
+            # Some sandboxed environments cannot access /dev/shm and joblib
+            # prints an absolute-path warning on load. It is environmental noise,
+            # not a model problem, and would leak local paths into CLI output.
+            warnings.filterwarnings("ignore", message=".*joblib will operate in serial mode.*")
+            payload = joblib.load(model_path)
         if not isinstance(payload, dict) or "models" not in payload or "meta" not in payload:
             raise ValueError(f"Malformed model artifact {model_path}; retrain with `make train`.")
         models = payload["models"]
