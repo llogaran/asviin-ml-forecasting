@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-11-03T20:01:44Z",
+  "status": "warning",
+  "drift_share": 0.285714,
+  "n_features": 7,
+  "features_checked": [
+    "units_sold",
+    "revenue_mxn",
+    "pending_units",
+    "stock_on_hand",
+    "unit_price_mxn",
+    "promo",
+    "stockout_flag"
+  ],
+  "drifted_features": [
+    "stock_on_hand",
+    "promo"
+  ],
+  "warning_features": [],
+  "reference_rows": 1680,
+  "current_rows": 1680,
+  "reference_window": {
+    "date_min": "2024-12-05",
+    "date_max": "2025-01-01"
+  },
+  "current_window": {
+    "date_min": "2025-12-04",
+    "date_max": "2025-12-31"
+  },
+  "thresholds": {
+    "psi_drift": 0.2,
+    "psi_warning": 0.1,
+    "ks_pvalue_drift": 0.01,
+    "ks_pvalue_warning": 0.05,
+    "drift_share": 0.3,
+    "psi_bins": 10
+  },
+  "features": {
+    "units_sold": {
+      "status": "ok",
+      "psi": 0.01084,
+      "ks_statistic": 0.041667,
+      "ks_pvalue": 0.105209,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 3.26803,
+      "current_mean": 3.642226,
+      "reference_std": 5.521032,
+      "current_std": 5.915114
+    },
+    "revenue_mxn": {
+      "status": "ok",
+      "psi": 0.003084,
+      "ks_statistic": 0.033333,
+      "ks_pvalue": 0.301447,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 125.25381,
+      "current_mean": 153.196452,
+      "reference_std": 318.750806,
+      "current_std": 481.283636
+    },
+    "pending_units": {
+      "status": "ok",
+      "psi": 0.010953,
+      "ks_statistic": 0.005952,
+      "ks_pvalue": 1.0,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 0.2935,
+      "current_mean": 0.280964,
+      "reference_std": 1.856196,
+      "current_std": 1.85942
+    },
+    "stock_on_hand": {
+      "status": "drift",
+      "psi": 0.067484,
+      "ks_statistic": 0.076786,
+      "ks_pvalue": 9.4e-05,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 58.472071,
+      "current_mean": 65.59528,
+      "reference_std": 112.094473,
+      "current_std": 128.922876
+    },
+    "unit_price_mxn": {
+      "status": "ok",
+      "psi": 0.000489,
+      "ks_statistic": 0.004762,
+      "ks_pvalue": 1.0,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 109.31,
+      "current_mean": 108.94097,
+      "reference_std": 206.200712,
+      "current_std": 206.140564
+    },
+    "promo": {
+      "status": "drift",
+      "psi": 0.361956,
+      "ks_statistic": 0.034524,
+      "ks_pvalue": 0.263279,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 0.0,
+      "current_mean": 0.034524,
+      "reference_std": 0.0,
+      "current_std": 0.18257
+    },
+    "stockout_flag": {
+      "status": "ok",
+      "psi": 0.003214,
+      "ks_statistic": 0.0125,
+      "ks_pvalue": 0.999253,
+      "reference_count": 1680,
+      "current_count": 1680,
+      "reference_missing": 0,
+      "current_missing": 0,
+      "reference_mean": 0.057738,
+      "current_mean": 0.045238,
+      "reference_std": 0.233248,
+      "current_std": 0.207826
+    }
+  },
+  "inject_drift": false,
+  "window_mode": "seasonal",
+  "window_days": 28,
+  "lag_days": 364
+}
