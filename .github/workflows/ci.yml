@@ -1,0 +1,125 @@
+name: CI
+
+# Quoted so YAML 1.1 parsers (e.g. PyYAML) keep the key as "on" instead of True.
+"on":
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  quality:
+    name: Quality (ruff + pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install project with dev extras
+        run: python -m pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check src tests
+
+      - name: Test
+        run: pytest -q
+
+  pipeline:
+    name: Pipeline (quick data, train, drift, forecaster)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      # The Makefile hardcodes .venv/bin/python, so CI mirrors local dev here.
+      - name: Create .venv and install package
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -e .
+
+      - name: Generate quick dataset
+        run: make data-quick
+
+      - name: Train quick model
+        run: make train-quick
+
+      - name: Build drift report
+        run: |
+          .venv/bin/python -m src.monitoring.drift \
+            --data .ci/data/processed/demand_daily.csv \
+            --out .ci/drift.json
+
+      - name: Forecaster smoke import
+        run: |
+          .venv/bin/python -c "from src.pipelines.forecast import Forecaster; print('forecaster ready:', Forecaster.load('.ci/data', '.ci/artifacts').model_info()['model_version'])"
+
+      - name: Upload pipeline artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-pipeline-artifacts
+          path: |
+            .ci/drift.json
+            .ci/artifacts/models/registry.json
+            .ci/artifacts/reports/
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  docker:
+    name: Docker image (build + health smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the serving image
+        run: docker build -t asviin-ml-forecasting:ci .
+
+      - name: Run the container
+        run: docker run -d --name mlfc-ci -p 8000:8000 asviin-ml-forecasting:ci
+
+      - name: Wait for /health and smoke-test the API
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/health >/dev/null; then
+              echo "API is up after ${attempt}s"
+              break
+            fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/health
+          curl -sf -X POST http://127.0.0.1:8000/forecast \
+            -H "Content-Type: application/json" \
+            -d '{"product_id":"P-007","branch_id":"B-01","horizon_days":7}' > /dev/null
+          echo "forecast smoke passed"
+
+      - name: Container logs
+        if: always()
+        run: docker logs mlfc-ci || true
