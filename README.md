@@ -6,6 +6,7 @@
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3123/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![CI](https://github.com/llogaran/asviin-ml-forecasting/actions/workflows/ci.yml/badge.svg)](https://github.com/llogaran/asviin-ml-forecasting/actions/workflows/ci.yml)
 
 **Milestone status:** M1–M6 — the portfolio is complete: documentation, the
 reproducible synthetic data pipeline, feature engineering, temporal-validation
